@@ -10,12 +10,15 @@ RUN gulp
 
 
 # Build Golang binary
-FROM golang:1.11 AS build-golang
-
+FROM golang:1.15.2 AS build-golang
 WORKDIR /go/src/github.com/gophish/gophish
+RUN apt update && apt install ca-certificates libgnutls30 -y
 COPY . .
 RUN go get -v && go build -v
 
+# This build stage will be useful for compiling modified binary via docker container
+FROM scratch AS binary
+COPY --from=build-golang /go/src/github.com/gophish/gophish/gophish /gophish-modified-with-qr-v.0.11.0
 
 # Runtime container
 FROM debian:stable-slim
